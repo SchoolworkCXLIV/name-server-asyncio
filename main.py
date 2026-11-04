@@ -1,6 +1,6 @@
 import asyncio
-import cmd
 import json
+from datetime import datetime
 
 class NameServer:
     # 127.0.0.1 - 6000 - Restituisce host e porta del servizio richiesto
@@ -13,7 +13,7 @@ class NameServer:
             "time": ("127.0.0.1", 6001),
         }
 
-    async def NameServer(self, reader, writer):
+    async def start(self, reader, writer):
         # cmd_list = ["lookup", "echo"]
         while True:
             data = await reader.readline().decode()
@@ -39,8 +39,40 @@ class NameServer:
                     "status": "error",
                     "message": "unknown command"
                 }
+            writer.write(json.dumps(res).encode())
+            writer.drain()
             writer.close()
             await writer.wait_closed()
+
+class TimeServer:
+    def __init__(self, host: str, port: int):
+        self.host = host
+        self.port = port
+
+    async def start(self, reader, writer):
+        while True:
+            data = await reader.readline().decode()
+            message = json.loads(data)
+            cmd = message["cmd"]
+            if cmd == "time":
+                res = {
+                    "status": "ok",
+                    "time": datetime.now()
+                }
+            else:
+                res = {
+                    "status": "error",
+                    "message": "unknown command"
+                }
+
+            writer.write(json.dumps(res).encode())
+            writer.drain()
+            writer.close()
+            await writer.wait_closed()
+
+
+
+
 
 
 
