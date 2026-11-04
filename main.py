@@ -1,0 +1,46 @@
+import asyncio
+import cmd
+import json
+
+class NameServer:
+    # 127.0.0.1 - 6000 - Restituisce host e porta del servizio richiesto
+    def __init__(self, host: str, port: int):
+        self.host = host
+        self.port = port
+
+        self.diz = {
+            "echo": ("127.0.0.1", 6002),
+            "time": ("127.0.0.1", 6001),
+        }
+
+    async def NameServer(self, reader, writer):
+        # cmd_list = ["lookup", "echo"]
+        while True:
+            data = await reader.readline().decode()
+            message = json.loads(data)
+            cmd = message["cmd"]
+            service = message["service"]
+            res = {}
+            if cmd == "lookup":
+                if service in self.diz.keys():
+                    res = {
+                        "status": "ok",
+                        "service": service,
+                        "host": self.diz[service][0],
+                        "port": self.diz[service][1]
+                    }
+                else:
+                    res = {
+                        "status": "error",
+                        "message": "service not found"
+                    }
+            else:
+                res = {
+                    "status": "error",
+                    "message": "unknown command"
+                }
+            writer.close()
+            await writer.wait_closed()
+
+
+
