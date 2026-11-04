@@ -14,30 +14,31 @@ class NameServer:
 
     async def start(self, reader, writer):
         try:
-            data = (await reader.readline()).decode()
-            if not data:
-                return
+            while True:
+                data = (await reader.readline()).decode()
+                if not data:
+                    break
 
-            message = json.loads(data)
-            cmd = message.get("cmd")
-            service = message.get("service")
-            res = {}
+                message = json.loads(data)
+                cmd = message.get("cmd")
+                service = message.get("service")
+                res = {}
 
-            if cmd == "lookup":
-                if service in self.diz:
-                    res = {
-                        "status": "ok",
-                        "service": service,
-                        "host": self.diz[service][0],
-                        "port": self.diz[service][1]
-                    }
+                if cmd == "lookup":
+                    if service in self.diz:
+                        res = {
+                            "status": "ok",
+                            "service": service,
+                            "host": self.diz[service][0],
+                            "port": self.diz[service][1]
+                        }
+                    else:
+                        res = {"status": "error", "message": "service not found"}
                 else:
-                    res = {"status": "error", "message": "service not found"}
-            else:
-                res = {"status": "error", "message": "unknown command"}
+                    res = {"status": "error", "message": "unknown command"}
 
-            writer.write((json.dumps(res) + "\n").encode())
-            await writer.drain()  # Aggiunto await
+                writer.write((json.dumps(res) + "\n").encode())
+                await writer.drain()
         except Exception as e:
             print(f"Errore NameServer: {e}")
         finally:
@@ -52,28 +53,30 @@ class TimeServer:
 
     async def start(self, reader, writer):
         try:
-            data = (await reader.readline()).decode()
-            if not data:
-                return
+            while True:
+                data = (await reader.readline()).decode()
+                if not data:
+                    break
 
-            message = json.loads(data)
-            cmd = message.get("cmd")
+                message = json.loads(data)
+                cmd = message.get("cmd")
 
-            if cmd == "time":
-                res = {
-                    "status": "ok",
-                    "time": datetime.now().isoformat()
-                }
-            else:
-                res = {"status": "error", "message": "unknown command"}
+                if cmd == "time":
+                    res = {
+                        "status": "ok",
+                        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                else:
+                    res = {"status": "error", "message": "unknown command"}
 
-            writer.write((json.dumps(res) + "\n").encode())
-            await writer.drain()
+                writer.write((json.dumps(res) + "\n").encode())
+                await writer.drain()
         except Exception as e:
             print(f"Errore TimeServer: {e}")
         finally:
             writer.close()
             await writer.wait_closed()
+
 
 class EchoServer:
     def __init__(self, host: str, port: int):
@@ -82,20 +85,21 @@ class EchoServer:
 
     async def start(self, reader, writer):
         try:
-            data = (await reader.readline()).decode()
-            if not data:
-                return
+            while True:
+                data = (await reader.readline()).decode()
+                if not data:
+                    break
 
-            message = json.loads(data)
-            cmd = message.get("cmd")
+                message = json.loads(data)
+                cmd = message.get("cmd")
 
-            if cmd == "echo":
-                res = {
-                    "status": "ok",
-                    "echo": message["text"]
-                }
-            else:
-                res = {"status": "error", "message": "unknown command"}
+                if cmd == "echo":
+                    res = {
+                        "status": "ok",
+                        "text": message["text"]
+                    }
+                else:
+                    res = {"status": "error", "message": "unknown command"}
 
                 writer.write((json.dumps(res) + "\n").encode())
                 await writer.drain()
@@ -104,7 +108,6 @@ class EchoServer:
         finally:
             writer.close()
             await writer.wait_closed()
-
 
 
 async def main():
@@ -134,7 +137,6 @@ async def main():
     print(f"TimeServer attivo su {time_server_instance.host}:{time_server_instance.port}")
     print(f"EchoServer attivo su {echo_server_instance.host}:{echo_server_instance.port}")
 
-    # Avvia entrambi i server contemporaneamente
     async with server_name, server_time, server_echo:
         await asyncio.gather(server_name.serve_forever(), server_time.serve_forever(), server_echo.serve_forever())
 
