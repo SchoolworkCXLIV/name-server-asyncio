@@ -19,23 +19,27 @@ class NameServer:
                 if not data:
                     break
 
-                message = json.loads(data)
-                cmd = message.get("cmd")
-                service = message.get("service")
-                res = {}
+                try:
+                    message = json.loads(data)
+                    cmd = message.get("cmd")
+                    service = message.get("service")
 
-                if cmd == "lookup":
-                    if service in self.diz:
-                        res = {
-                            "status": "ok",
-                            "service": service,
-                            "host": self.diz[service][0],
-                            "port": self.diz[service][1]
-                        }
+                    if cmd == "lookup":
+                        if service in self.diz:
+                            res = {
+                                "status": "ok",
+                                "service": service,
+                                "host": self.diz[service][0],
+                                "port": self.diz[service][1]
+                            }
+                        else:
+                            res = {"status": "error", "message": "service not found"}
                     else:
-                        res = {"status": "error", "message": "service not found"}
-                else:
-                    res = {"status": "error", "message": "unknown command"}
+                        res = {"status": "error", "message": "unknown command"}
+                except json.JSONDecodeError:
+                    res = {"status": "error", "message": "invalid json"}
+                except Exception as e:
+                    res = {"status": "error", "message": str(e)}
 
                 writer.write((json.dumps(res) + "\n").encode())
                 await writer.drain()
@@ -58,16 +62,21 @@ class TimeServer:
                 if not data:
                     break
 
-                message = json.loads(data)
-                cmd = message.get("cmd")
+                try:
+                    message = json.loads(data)
+                    cmd = message.get("cmd")
 
-                if cmd == "time":
-                    res = {
-                        "status": "ok",
-                        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    }
-                else:
-                    res = {"status": "error", "message": "unknown command"}
+                    if cmd == "time":
+                        res = {
+                            "status": "ok",
+                            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        }
+                    else:
+                        res = {"status": "error", "message": "unknown command"}
+                except json.JSONDecodeError:
+                    res = {"status": "error", "message": "invalid json"}
+                except Exception as e:
+                    res = {"status": "error", "message": str(e)}
 
                 writer.write((json.dumps(res) + "\n").encode())
                 await writer.drain()
@@ -90,16 +99,24 @@ class EchoServer:
                 if not data:
                     break
 
-                message = json.loads(data)
-                cmd = message.get("cmd")
+                try:
+                    message = json.loads(data)
+                    cmd = message.get("cmd")
 
-                if cmd == "echo":
-                    res = {
-                        "status": "ok",
-                        "text": message["text"]
-                    }
-                else:
-                    res = {"status": "error", "message": "unknown command"}
+                    if cmd == "echo":
+                        if "text" in message:
+                            res = {
+                                "status": "ok",
+                                "text": message["text"]
+                            }
+                        else:
+                            res = {"status": "error", "message": "missing text field"}
+                    else:
+                        res = {"status": "error", "message": "unknown command"}
+                except json.JSONDecodeError:
+                    res = {"status": "error", "message": "invalid json"}
+                except Exception as e:
+                    res = {"status": "error", "message": str(e)}
 
                 writer.write((json.dumps(res) + "\n").encode())
                 await writer.drain()
