@@ -75,10 +75,42 @@ class TimeServer:
             writer.close()
             await writer.wait_closed()
 
+class EchoServer:
+    def __init__(self, host: str, port: int):
+        self.host = host
+        self.port = port
+
+    async def start(self, reader, writer):
+        try:
+            data = (await reader.readline()).decode()
+            if not data:
+                return
+
+            message = json.loads(data)
+            cmd = message.get("cmd")
+
+            if cmd == "echo":
+                res = {
+                    "status": "ok",
+                    "echo": message["text"]
+                }
+            else:
+                res = {"status": "error", "message": "unknown command"}
+
+                writer.write((json.dumps(res) + "\n").encode())
+                await writer.drain()
+        except Exception as e:
+            print(f"Errore EchoServer: {e}")
+        finally:
+            writer.close()
+            await writer.wait_closed()
+
+
 
 async def main():
     name_server_instance = NameServer(host="127.0.0.1", port=6000)
     time_server_instance = TimeServer(host="127.0.0.1", port=6001)
+    echo_server_instance = EchoServer(host="127.0.0.1", port=6002)
 
     server_name = await asyncio.start_server(
         name_server_instance.start,
@@ -92,12 +124,19 @@ async def main():
         port=time_server_instance.port
     )
 
+    server_echo = await asyncio.start_server(
+        echo_server_instance.start,
+        host=echo_server_instance.host,
+        port=echo_server_instance.port
+    )
+
     print(f"NameServer attivo su {name_server_instance.host}:{name_server_instance.port}")
     print(f"TimeServer attivo su {time_server_instance.host}:{time_server_instance.port}")
+    print(f"EchoServer attivo su {echo_server_instance.host}:{echo_server_instance.port}")
 
     # Avvia entrambi i server contemporaneamente
-    async with server_name, server_time:
-        await asyncio.gather(server_name.serve_forever(), server_time.serve_forever())
+    async with server_name, server_time, server_echo:
+        await asyncio.gather(server_name.serve_forever(), server_time.serve_forever(), server_echo.serve_forever())
 
 
 if __name__ == "__main__":
