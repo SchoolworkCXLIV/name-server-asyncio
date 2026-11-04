@@ -71,7 +71,15 @@ class TimeServer:
             await writer.wait_closed()
 
 
+async def main():
+    nameServer = NameServer(host="127.0.0.1", port=6000)
+    server = await asyncio.start_server(nameServer.start())
 
+    async with server:
+        await server.serve_forever()
+
+if __name__ == "__main__":
+    asyncio.run(main())
 
 
 
