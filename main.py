@@ -7,7 +7,7 @@ class NameServer:
     def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
-        self.diz = {
+        self.diz = { # dizionario con indirizzo/porta dei server
             "echo": ("127.0.0.1", 6002),
             "time": ("127.0.0.1", 6001),
         }
@@ -25,7 +25,7 @@ class NameServer:
                     service = message.get("service")
 
                     if cmd == "lookup":
-                        if service in self.diz:
+                        if service in self.diz: # controllo se il servizio è presente
                             res = {
                                 "status": "ok",
                                 "service": service,
