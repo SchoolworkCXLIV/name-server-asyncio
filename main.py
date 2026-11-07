@@ -35,7 +35,11 @@ class NameServer:
                         else:
                             res = {"status": "error", "message": "service not found"}
                     elif cmd == "list":
-                       res = {"status": "ok", "services": list(self.services.keys())}
+                        res = {"status": "ok", "services": list(self.services.keys())}
+                    elif cmd == "register":
+                        # sintassi = register nomeservizio ip porta
+                        self.services[message.get("name")] = (message.get("ip"), message.get("port"))
+                        res = {"status": "ok", "name": list(self.services)[-1], "ip": self.services[message.get("name")][0], "port": self.services[message.get("name")][1]}
                     else:
                         res = {"status": "error", "message": "unknown command"}
                 except json.JSONDecodeError:

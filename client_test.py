@@ -32,22 +32,34 @@ async def request_service_address(service_name):
     try:
         # lookup
         req = {"cmd": "lookup", "service": service_name}
-        print(f"[Client -> NameServer]: {req}")
+        print(f"LOOKUP === [Client -> NameServer]: {req}")
         await send_json(writer, req)
 
         # risposta lookup
         res = await receive_json(reader)
-        print(f"[NameServer -> Client]: {res}\n")
+        print(f"LOOKUP === [NameServer -> Client]: {res}\n")
         # return res
+
+        # register
+        NOME_NUOVO_SERVIZIO = "gibibir"
+        IP_NUOVO_SERVIZIO = "127.0.0.1"
+        PORT_NUOVO_SERVIZIO = "6144"
+        req = {"cmd": "register", "name": NOME_NUOVO_SERVIZIO, "ip": IP_NUOVO_SERVIZIO, "port": PORT_NUOVO_SERVIZIO} # cmd name ip port
+        print(f"REGISTER === [Client -> NameServer]: {req}")
+        await send_json(writer, req)
+
+        # risposta register
+        res = await receive_json(reader)
+        print(f"REGISTER === [NameServer -> Client]: {res}\n")
 
         # list
         req = {"cmd": "list"}
-        print(f"[Client -> NameServer]: {req}")
+        print(f"LIST === [Client -> NameServer]: {req}")
         await send_json(writer, req)
 
         # risposta list
         res = await receive_json(reader)
-        print(f"[NameServer -> Client]: {res}\n")
+        print(f"LIST === [NameServer -> Client]: {res}\n")
         return # teoricamente funziona anche senza res
 
     finally:
