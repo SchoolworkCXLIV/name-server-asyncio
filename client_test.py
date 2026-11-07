@@ -38,7 +38,18 @@ async def request_service_address(service_name):
         # risposta lookup
         res = await receive_json(reader)
         print(f"[NameServer -> Client]: {res}\n")
-        return res
+        # return res
+
+        # list
+        req = {"cmd": "list"}
+        print(f"[Client -> NameServer]: {req}")
+        await send_json(writer, req)
+
+        # risposta list
+        res = await receive_json(reader)
+        print(f"[NameServer -> Client]: {res}\n")
+        return # teoricamente funziona anche senza res
+
     finally:
         writer.close()
         await writer.wait_closed()

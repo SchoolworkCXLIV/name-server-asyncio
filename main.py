@@ -7,7 +7,7 @@ class NameServer:
     def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
-        self.diz = { # dizionario con indirizzo/porta dei server
+        self.services = { # dizionario con indirizzo/porta dei servizi
             "echo": ("127.0.0.1", 6002),
             "time": ("127.0.0.1", 6001),
         }
@@ -25,15 +25,17 @@ class NameServer:
                     service = message.get("service")
 
                     if cmd == "lookup":
-                        if service in self.diz: # controllo se il servizio è presente
+                        if service in self.services: # controllo se il servizio è presente
                             res = {
                                 "status": "ok",
                                 "service": service,
-                                "host": self.diz[service][0],
-                                "port": self.diz[service][1]
+                                "host": self.services[service][0],
+                                "port": self.services[service][1]
                             }
                         else:
                             res = {"status": "error", "message": "service not found"}
+                    elif cmd == "list":
+                       res = {"status": "ok", "services": list(self.services.keys())}
                     else:
                         res = {"status": "error", "message": "unknown command"}
                 except json.JSONDecodeError:
