@@ -1,3 +1,5 @@
+# aggiungere formattazione risposte (estrarre dati dal json)
+
 import asyncio
 import json
 
@@ -53,8 +55,8 @@ async def usa_servizio(service_name, host, port):
 
             # per time basta una volta, poi chiedo se rifare
             if service_name == "time":
-                ancora = await ainput("Chiedere di nuovo l'ora? (s/n): ")
-                if ancora.lower() != "s":
+                again = await ainput("Chiedere di nuovo l'ora? (s/n): ")
+                if again.lower() != "s":
                     break
     finally:
         writer.close()
@@ -77,7 +79,7 @@ async def main():
             scelta = (await ainput("Scegli: ")).strip()
 
             if scelta == "0":
-                print("Ciao!")
+                print("Anninaaaaaa!")
                 break
 
             elif scelta == "1":
@@ -100,8 +102,7 @@ async def main():
                 ip = (await ainput("IP (es. 127.0.0.1): ")).strip()
                 porta = (await ainput("Porta: ")).strip()
 
-                # nota: converto porta in int così è coerente col dizionario del server
-                req = {"cmd": "register", "name": nome, "ip": ip, "port": int(porta)}
+                req = {"cmd": "register", "name": nome, "ip": ip, "port": int(porta)} # converto porta in int così è coerente col dizionario del server
                 print(f"[Client -> NameServer]: {req}")
                 await send_json(writer, req)
 
